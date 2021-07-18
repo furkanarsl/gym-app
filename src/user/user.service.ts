@@ -1,5 +1,15 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  HttpException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { type } from 'os';
+import { Role } from 'src/auth/role.enum';
+import { PaginationDto } from 'src/common/dto/pagination.dto';
+import { SortDto } from 'src/common/dto/sort.dto';
+import { MemberService } from 'src/member/member.service';
 import { Repository } from 'typeorm';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -10,16 +20,42 @@ export class UserService {
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
+    private memberService: MemberService,
   ) {}
 
   async create(createUserDto: CreateUserDto) {
-    // TODO Change this to generate a password for a new user?
+    await this.checkUsername(createUserDto.username);
     const user = this.userRepository.create(createUserDto);
-    return this.userRepository.save(user);
+    await this.userRepository.save(user);
+    if (user.role == Role.USER) {
+      const member = await this.memberService.create();
+      user.member = member;
+      await this.userRepository.save(user);
+    }
+    return user;
   }
 
-  async findAll() {
-    return await this.userRepository.find();
+  async checkUsername(username: string) {
+    const user = await this.userRepository.findOne({ username: username });
+    if (user) {
+      throw new BadRequestException(`Username ${username} already exists.`);
+    }
+  }
+  async findAll(sortParams?: SortDto, paginationParams?: PaginationDto) {
+    const qb = this.userRepository.createQueryBuilder('user').select(['user']);
+    if (paginationParams) {
+      qb.offset(paginationParams.skip);
+      qb.limit(paginationParams.limit);
+    }
+
+    if (sortParams) {
+      if (sortParams.sort === 'member.user.id') {
+        sortParams.sort = 'user.username';
+      }
+      qb.orderBy(sortParams.sort, sortParams.order);
+    }
+
+    return qb.getMany();
   }
 
   async findOneByUsername(username: string) {
@@ -52,4 +88,8 @@ export class UserService {
     const user = await this.findOne(id);
     return this.userRepository.remove(user);
   }
+  async count() {
+    return this.userRepository.count();
+  }
+  async logMembership() {}
 }

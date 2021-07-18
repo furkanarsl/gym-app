@@ -1,10 +1,10 @@
 import {
-  isLocale,
   IsMobilePhone,
   IsNotEmpty,
   IsOptional,
   IsString,
 } from 'class-validator';
+import { Role } from 'src/auth/role.enum';
 
 export class CreateUserDto {
   @IsString()
@@ -23,4 +23,8 @@ export class CreateUserDto {
 
   @IsMobilePhone()
   readonly phone: string;
+
+  @IsString()
+  @IsOptional()
+  readonly role: Role = Role.USER;
 }

@@ -1,6 +1,14 @@
 import { Exclude } from 'class-transformer';
 import { Role } from 'src/auth/role.enum';
-import { Column, Entity, Index, PrimaryGeneratedColumn } from 'typeorm';
+import { Member } from 'src/member/entities/member.entity';
+import {
+  Column,
+  Entity,
+  Index,
+  JoinColumn,
+  OneToOne,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 
 @Entity()
 export class User {
@@ -26,4 +34,12 @@ export class User {
 
   @Column({ type: 'text', nullable: true })
   phone: string;
+
+  @Column({ type: 'bool', nullable: false, default: false })
+  completedFirstLogin: boolean;
+
+  @OneToOne(() => Member)
+  @JoinColumn()
+  @Exclude()
+  member: Member;
 }
