@@ -44,7 +44,6 @@ export class AuthService {
     return { access_token: this.jwtService.sign(payload) };
   }
 
-  
   async register(registerData: CreateUserDto) {
     const hashedPassword = await bcrypt.hash(registerData.password, 10);
     const userData = {
@@ -52,7 +51,7 @@ export class AuthService {
       password: hashedPassword,
     };
     const createdUser = await this.userService.create(userData);
-    createdUser.password = undefined;
+    // createdUser.password = undefined;
     return createdUser;
   }
 }
