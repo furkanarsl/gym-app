@@ -1,26 +1,39 @@
 import {
-  Controller,
-  Get,
-  Post,
   Body,
-  Patch,
-  Param,
-  Delete,
-  UseInterceptors,
   ClassSerializerInterceptor,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Patch,
+  Query,
+  Req,
+  UseInterceptors,
 } from '@nestjs/common';
-import { UserService } from './user.service';
-import { CreateUserDto } from './dto/create-user.dto';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { Request } from 'express';
+import { PaginationDto } from 'src/common/dto/pagination.dto';
+import { SortDto } from 'src/common/dto/sort.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { UserService } from './user.service';
 
+@ApiTags('User')
+@ApiBearerAuth()
 @Controller('user')
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
+  @ApiBearerAuth()
   @UseInterceptors(ClassSerializerInterceptor)
   @Get()
-  findAll() {
-    return this.userService.findAll();
+  async findAll(
+    @Req() req: Request,
+    @Query() sortParams?: SortDto,
+    @Query() pagination?: PaginationDto,
+  ) {
+    const result = await this.userService.findAll(sortParams, pagination);
+    req.res.set('content-range', result.length.toString());
+    return result;
   }
 
   @UseInterceptors(ClassSerializerInterceptor)
