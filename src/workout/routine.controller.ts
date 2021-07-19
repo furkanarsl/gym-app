@@ -31,9 +31,8 @@ export class RoutineController {
     @Query() sortParams?: SortDto,
     @Query() pagination?: PaginationDto,
   ) {
-    const result = await this.routineService.findAll(sortParams, pagination);
-    req.res.set('content-range', result.length);
-    return result;
+    req.res.set('content-range', (await this.routineService.count()).toString);
+    return await this.routineService.findAll(sortParams, pagination);
   }
 
   @Get(':id')

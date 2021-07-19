@@ -31,9 +31,8 @@ export class UserController {
     @Query() sortParams?: SortDto,
     @Query() pagination?: PaginationDto,
   ) {
-    const result = await this.userService.findAll(sortParams, pagination);
-    req.res.set('content-range', result.length.toString());
-    return result;
+    req.res.set('content-range', (await this.userService.count()).toString());
+    return await this.userService.findAll(sortParams, pagination);
   }
 
   @UseInterceptors(ClassSerializerInterceptor)

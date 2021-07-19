@@ -39,9 +39,11 @@ export class MembershipController {
     @Query() sortParams?: SortDto,
     @Query() pagination?: PaginationDto,
   ) {
-    const result = await this.membershipService.findAll(sortParams, pagination);
-    req.res.set('content-range', result.length);
-    return result;
+    req.res.set(
+      'content-range',
+      (await this.membershipService.count()).toString,
+    );
+    return await this.membershipService.findAll(sortParams, pagination);
   }
 
   @Patch(':id')

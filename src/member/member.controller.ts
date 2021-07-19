@@ -20,13 +20,12 @@ export class MemberController {
     @Req() req,
     @Query('memberId') memberId: number,
     @Query() sortParams?: SortDto,
-    @Query() pagination?: PaginationDto
+    @Query() pagination?: PaginationDto,
   ) {
     if (memberId) {
       // return await this.memberService.findAllForMember(+memberId);
     }
-    const result = await this.memberService.findAll(sortParams, pagination);
-    req.res.set('content-range', result.length);
-    return result;
+    req.res.set('content-range', (await this.memberService.count()).toString());
+    return await this.memberService.findAll(sortParams, pagination);
   }
 }

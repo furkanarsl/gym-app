@@ -31,9 +31,11 @@ export class ExerciseController {
     @Query() sortParams?: SortDto,
     @Query() pagination?: PaginationDto,
   ) {
-    const result = await this.exerciseService.findAll(sortParams, pagination);
-    req.res.set('content-range', result.length);
-    return result;
+    req.res.set(
+      'content-range',
+      (await this.exerciseService.count()).toString(),
+    );
+    return await this.exerciseService.findAll(sortParams, pagination);
   }
 
   @Get(':id')
