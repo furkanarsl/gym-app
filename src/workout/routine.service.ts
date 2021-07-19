@@ -116,4 +116,8 @@ export class RoutineService {
   async remove(id: number) {
     return await this.routineRepository.delete(id);
   }
+
+  async count() {
+    return await this.routineRepository.count();
+  }
 }

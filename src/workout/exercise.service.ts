@@ -56,4 +56,8 @@ export class ExerciseService {
   remove(id: number) {
     return `This action removes a #${id} workout`;
   }
+
+  async count() {
+    return await this.exerciseRepository.count();
+  }
 }
