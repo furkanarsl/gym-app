@@ -11,6 +11,7 @@ import { LoginUserDto } from './dto/login-user.dto';
 import * as bcrypt from 'bcrypt';
 import {} from 'pg';
 import { CreateUserDto } from 'src/user/dto/create-user.dto';
+import { Role } from './role.enum';
 @Injectable()
 export class AuthService {
   constructor(
@@ -34,8 +35,12 @@ export class AuthService {
     }
   }
 
-  async login(user: LoginUserDto) {
+  async login(user: LoginUserDto, adminLogin?: boolean) {
     const validatedUser = await this.validateUser(user.username, user.password);
+
+    if (adminLogin && validatedUser.role !== Role.ADMIN){
+        throw new UnauthorizedException('Invalid credentials.')
+    }
     const payload = {
       username: validatedUser.username,
       sub: validatedUser.id,
