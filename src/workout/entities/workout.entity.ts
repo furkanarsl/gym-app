@@ -7,6 +7,7 @@ import {
   OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
+import { RoutineService } from '../routine.service';
 import { Routine } from './routine.entity';
 
 @Entity()
@@ -17,7 +18,7 @@ export class Workout {
   @Column()
   name: string;
 
-  @ManyToMany(() => Routine)
+  @ManyToMany(() => Routine, (routines) => routines.workouts)
   @JoinTable()
   routines: Routine[];
 

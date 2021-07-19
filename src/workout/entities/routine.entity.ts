@@ -9,12 +9,15 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { ExerciseTarget } from './exercisetarget.entity';
+import { Workout } from './workout.entity';
 
 @Entity()
 export class Routine {
   @PrimaryGeneratedColumn()
   id: number;
 
+  @ManyToMany(() => Workout)
+  workouts: Workout[];
   @Column()
   name: string;
 
