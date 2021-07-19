@@ -6,11 +6,15 @@ import {
   Patch,
   Param,
   Delete,
+  Req,
+  Query,
 } from '@nestjs/common';
 import { WorkoutService } from './workout.service';
 import { CreateWorkoutDto } from './dto/create-workout.dto';
 import { UpdateWorkoutDto } from './dto/update-workout.dto';
 import { ApiTags } from '@nestjs/swagger';
+import { SortDto } from 'src/common/dto/sort.dto';
+import { PaginationDto } from 'src/common/dto/pagination.dto';
 
 @ApiTags('Workouts')
 @Controller('workout')
@@ -23,8 +27,13 @@ export class WorkoutController {
   }
 
   @Get()
-  findAll() {
-    return this.workoutService.findAll();
+  async findAll(
+    @Req() req,
+    @Query() sortParams?: SortDto,
+    @Query() pagination?: PaginationDto,
+  ) {
+    req.res.set('content-range', (await this.workoutService.count()).toString);
+    return await this.workoutService.findAll(sortParams, pagination);
   }
 
   @Get(':id')
