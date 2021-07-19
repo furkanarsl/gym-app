@@ -1,3 +1,4 @@
+import { UseGuards } from '@nestjs/common';
 import {
   Body,
   ClassSerializerInterceptor,
@@ -12,6 +13,10 @@ import {
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { Request } from 'express';
+import { JWTAuthGuard } from 'src/auth/jwt-auth-guard';
+import { Role } from 'src/auth/role.enum';
+import { Roles } from 'src/auth/roles.decorator';
+import { RolesGuard } from 'src/auth/roles.guard';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
 import { SortDto } from 'src/common/dto/sort.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -23,7 +28,8 @@ import { UserService } from './user.service';
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
-  @ApiBearerAuth()
+  @Roles(Role.ADMIN)
+  @UseGuards(JWTAuthGuard, RolesGuard)
   @UseInterceptors(ClassSerializerInterceptor)
   @Get()
   async findAll(
@@ -35,17 +41,23 @@ export class UserController {
     return await this.userService.findAll(sortParams, pagination);
   }
 
+  @Roles(Role.ADMIN)
+  @UseGuards(JWTAuthGuard, RolesGuard)
   @UseInterceptors(ClassSerializerInterceptor)
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.userService.findOne(+id);
   }
-
+  
+  @Roles(Role.ADMIN)
+  @UseGuards(JWTAuthGuard, RolesGuard)
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
     return this.userService.update(+id, updateUserDto);
   }
 
+  @Roles(Role.ADMIN)
+  @UseGuards(JWTAuthGuard, RolesGuard)
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.userService.remove(+id);

@@ -26,7 +26,12 @@ export class AuthController {
   async login(@Body() user: LoginUserDto) {
     return this.authService.login(user);
   }
-  @Roles(Role.USER)
+
+  @Post('login/admin')
+  async adminLogin(@Body() user: LoginUserDto) {
+    return this.authService.login(user, true);
+  }
+  @Roles(Role.ADMIN)
   @UseGuards(JWTAuthGuard, RolesGuard)
   @Get('protected')
   protected(@Request() req) {
@@ -34,8 +39,8 @@ export class AuthController {
   }
 
   @UseInterceptors(ClassSerializerInterceptor)
-  //@Roles(Role.ADMIN)
-  //@UseGuards(JWTAuthGuard, RolesGuard)
+  @Roles(Role.ADMIN)
+  @UseGuards(JWTAuthGuard, RolesGuard)
   @Post('register')
   async register(@Body() registerData: CreateUserDto) {
     return this.authService.register(registerData);

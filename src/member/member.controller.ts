@@ -1,3 +1,4 @@
+import { UseGuards } from '@nestjs/common';
 import {
   ClassSerializerInterceptor,
   Controller,
@@ -6,6 +7,10 @@ import {
   Req,
   UseInterceptors,
 } from '@nestjs/common';
+import { JWTAuthGuard } from 'src/auth/jwt-auth-guard';
+import { Role } from 'src/auth/role.enum';
+import { Roles } from 'src/auth/roles.decorator';
+import { RolesGuard } from 'src/auth/roles.guard';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
 import { SortDto } from 'src/common/dto/sort.dto';
 import { MemberService } from './member.service';
@@ -14,6 +19,8 @@ import { MemberService } from './member.service';
 export class MemberController {
   constructor(private readonly memberService: MemberService) {}
 
+  @Roles(Role.ADMIN)
+  @UseGuards(JWTAuthGuard, RolesGuard)
   @UseInterceptors(ClassSerializerInterceptor)
   @Get('')
   async getAllMembers(
