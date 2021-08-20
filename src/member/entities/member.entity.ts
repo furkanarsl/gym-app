@@ -4,6 +4,7 @@ import { Workout } from 'src/workout/entities/workout.entity';
 import {
   Column,
   Entity,
+  JoinColumn,
   ManyToOne,
   OneToMany,
   OneToOne,
@@ -24,6 +25,10 @@ export class Member {
   @OneToMany(() => Membership, (membership) => membership.member)
   memberships: Membership[];
 
-  @ManyToOne(() => Workout)
+  @Column({ nullable: true })
+  workout_id: number;
+
+  @ManyToOne(() => Workout, (workout) => workout.members)
+  @JoinColumn({ name: 'workout_id', referencedColumnName: 'id' })
   workout: Workout;
 }

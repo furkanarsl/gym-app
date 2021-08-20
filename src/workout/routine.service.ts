@@ -73,6 +73,7 @@ export class RoutineService {
     for (const exerciseTarget of exerciseTargets) {
       exList.push({
         id: exerciseTarget.exercise.exercise.id,
+        name: exerciseTarget.exercise.exercise.name,
         reps: exerciseTarget.exercise.reps,
         sets: exerciseTarget.exercise.sets,
       });

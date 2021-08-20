@@ -1,7 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
 import { SortDto } from 'src/common/dto/sort.dto';
+import { UserService } from 'src/user/user.service';
 import { Repository } from 'typeorm';
 import { CreateWorkoutDto } from './dto/create-workout.dto';
 import { UpdateWorkoutDto } from './dto/update-workout.dto';
@@ -12,6 +13,7 @@ export class WorkoutService {
   constructor(
     @InjectRepository(Workout)
     private readonly workoutRepository: Repository<Workout>,
+    private userService: UserService,
   ) {}
 
   async create(createWorkoutDto: CreateWorkoutDto) {
@@ -37,10 +39,21 @@ export class WorkoutService {
   }
 
   async findOne(id: number) {
-    return this.workoutRepository.findOne({
+    return this.workoutRepository.findOneOrFail({
       where: { id },
       relations: ['routines'],
     });
+  }
+
+  async findForUser(username: string) {
+    const user = await this.userService.findOneByUsername(username);
+    const qb = this.workoutRepository.createQueryBuilder('workout');
+    return await qb
+      .leftJoin('workout.members', 'member')
+      .leftJoinAndSelect('workout.routines', 'routines')
+      .where('member.id = :id', { id: user.member.id })
+      .addSelect(['workout'])
+      .getOne();
   }
 
   async update(id: number, updateWorkoutDto: UpdateWorkoutDto) {

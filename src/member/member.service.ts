@@ -1,11 +1,14 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  forwardRef,
+  Inject,
+  Injectable,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Role } from 'src/auth/role.enum';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
 import { SortDto } from 'src/common/dto/sort.dto';
-import { User } from 'src/user/entities/user.entity';
 import { Repository } from 'typeorm';
-import { CreateMemberDto } from './dto/create-member.dto';
 import { UpdateMemberDto } from './dto/update-member.dto';
 import { Member } from './entities/member.entity';
 
@@ -47,7 +50,9 @@ export class MemberService {
   }
 
   async findOne(id: number) {
-    const member = await this.memberRepository.findOne(id);
+    const member = await this.memberRepository.findOne(id, {
+      relations: ['workout'],
+    });
     if (!member) {
       throw new BadRequestException(
         'Invalid member',
@@ -57,8 +62,12 @@ export class MemberService {
     return member;
   }
 
-  update(id: number, updateMemberDto: UpdateMemberDto) {
-    return `This action updates a #${id} member`;
+  async update(id: number, updateMemberDto: UpdateMemberDto) {
+    await this.memberRepository.update(
+      { id: id },
+      { workout_id: updateMemberDto.workout },
+    );
+    return await this.findOne(id);
   }
 
   remove(id: number) {

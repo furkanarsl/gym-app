@@ -59,7 +59,10 @@ export class UserService {
   }
 
   async findOneByUsername(username: string) {
-    const user = await this.userRepository.findOne({ username: username });
+    const user = await this.userRepository.findOne(
+      { username: username },
+      { relations: ['member'] },
+    );
     if (!user) {
       throw new NotFoundException(`User ${username} not found.`);
     }
@@ -83,6 +86,17 @@ export class UserService {
     }
     return this.userRepository.save(user);
   }
+  async findForUser(username: string) {
+    const user = this.findOneByUsername(username);
+    return user;
+  }
+  async updateForUser(userID: number, updateUserDto: UpdateUserDto) {
+    const user = await this.userRepository.preload({
+      id: +userID,
+      ...updateUserDto,
+    });
+    return await this.userRepository.save(user);
+  }
 
   async remove(id: number) {
     const user = await this.findOne(id);
@@ -90,6 +104,11 @@ export class UserService {
   }
   async count() {
     return this.userRepository.count();
+  }
+  async changePassword(username, newPassword) {
+    const user = await this.findOneByUsername(username);
+    user.password = newPassword;
+    return await this.userRepository.save(user);
   }
   async logMembership() {}
 }

@@ -39,10 +39,9 @@ export class RoutineController {
     @Query() sortParams?: SortDto,
     @Query() pagination?: PaginationDto,
   ) {
-    req.res.set('content-range', (await this.routineService.count()).toString);
+    req.res.set('content-range', await this.routineService.count());
     return await this.routineService.findAll(sortParams, pagination);
   }
-
 
   @UseGuards(JWTAuthGuard, RolesGuard)
   @Get(':id')

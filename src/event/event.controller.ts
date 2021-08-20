@@ -6,6 +6,8 @@ import {
   Patch,
   Param,
   Delete,
+  Query,
+  Req,
 } from '@nestjs/common';
 import { EventService } from './event.service';
 import { CreateEventDto } from './dto/create-event.dto';
@@ -16,6 +18,9 @@ import { UseGuards } from '@nestjs/common';
 import { JWTAuthGuard } from 'src/auth/jwt-auth-guard';
 import { Role } from 'src/auth/role.enum';
 import { RolesGuard } from 'src/auth/roles.guard';
+import { SortDto } from 'src/common/dto/sort.dto';
+import { PaginationDto } from 'src/common/dto/pagination.dto';
+import { EventFilterDto } from './dto/event-filter.dto';
 
 @ApiTags('Events')
 @Controller('event')
@@ -29,27 +34,37 @@ export class EventController {
     return this.eventService.create(createEventDto);
   }
 
+  @UseGuards(JWTAuthGuard)
   @Get()
-  findAll() {
-    return this.eventService.findAll();
+  async findAll(
+    @Req() req,
+    @Query() sortParams?: SortDto,
+    @Query() pagination?: PaginationDto,
+    @Query() filterParams?: EventFilterDto,
+  ) {
+    req.res.set('content-range', await this.eventService.count());
+    return this.eventService.findAll(sortParams, pagination, filterParams);
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
+  async findOne(@Param('id') id: string) {
     return this.eventService.findOne(+id);
   }
 
   @Roles(Role.ADMIN)
   @UseGuards(JWTAuthGuard, RolesGuard)
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateEventDto: UpdateEventDto) {
+  async update(
+    @Param('id') id: string,
+    @Body() updateEventDto: UpdateEventDto,
+  ) {
     return this.eventService.update(+id, updateEventDto);
   }
 
   @Roles(Role.ADMIN)
   @UseGuards(JWTAuthGuard, RolesGuard)
   @Delete(':id')
-  remove(@Param('id') id: string) {
+  async remove(@Param('id') id: string) {
     return this.eventService.remove(+id);
   }
 }

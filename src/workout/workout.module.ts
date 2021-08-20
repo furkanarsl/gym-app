@@ -11,9 +11,11 @@ import { ExerciseController } from './exercise.controller';
 import { RoutineController } from './routine.controller';
 import { RoutineService } from './routine.service';
 import { ExerciseTargetService } from './exercisetarget.service';
+import { UserModule } from 'src/user/user.module';
 
 @Module({
   imports: [
+    UserModule,
     TypeOrmModule.forFeature([
       Exercise,
       Workout,

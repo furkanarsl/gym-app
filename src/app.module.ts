@@ -10,14 +10,17 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { EventModule } from './event/event.module';
 import { WorkoutModule } from './workout/workout.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { StatsModule } from './stats/stats.module';
 @Module({
   imports: [
-    ConfigModule.forRoot(),
+    ConfigModule.forRoot({ isGlobal: true }),
     UserModule,
     AuthModule,
     MemberModule,
     MembershipModule,
     WorkoutModule,
+    EventModule,
+    StatsModule,
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: (configService: ConfigService) => ({
@@ -33,8 +36,6 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
       inject: [ConfigService],
     }),
     ScheduleModule.forRoot(),
-    EventModule,
-    WorkoutModule,
   ],
   controllers: [AppController],
   providers: [AppService],

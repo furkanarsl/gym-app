@@ -50,10 +50,7 @@ export class MembershipController {
     @Query() sortParams?: SortDto,
     @Query() pagination?: PaginationDto,
   ) {
-    req.res.set(
-      'content-range',
-      (await this.membershipService.count()).toString,
-    );
+    req.res.set('content-range', await this.membershipService.count());
     return await this.membershipService.findAll(sortParams, pagination);
   }
 

@@ -1,3 +1,4 @@
+import { IsMilitaryTime, IsOptional, Matches } from 'class-validator';
 import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity()
@@ -11,12 +12,22 @@ export class Event {
   @Column({ type: 'date' })
   date: Date;
 
-  @Column({ type: 'timestamp' })
+  @IsMilitaryTime()
+  @Column({ type: 'text' })
   startTime: any;
 
-  @Column({ type: 'timestamp' })
+  @IsMilitaryTime()
+  @Column({ type: 'text' })
   endTime: any;
 
-  @Column()
+  @Column({ default: false })
   isCompleted: boolean;
+
+  @IsOptional()
+  @Column({ type: 'text', nullable: true })
+  description: string;
+
+  @IsOptional()
+  @Column({ nullable: true })
+  imgUrl: string;
 }

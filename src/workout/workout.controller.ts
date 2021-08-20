@@ -44,6 +44,13 @@ export class WorkoutController {
     return await this.workoutService.findAll(sortParams, pagination);
   }
 
+  @UseGuards(JWTAuthGuard)
+  @Get('/me')
+  findForUser(@Req() req) {
+    const user = req.user;
+    return this.workoutService.findForUser(user.username);
+  }
+
   @UseGuards(JWTAuthGuard, RolesGuard)
   @Get(':id')
   findOne(@Param('id') id: string) {

@@ -5,6 +5,7 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import {
+  Between,
   createQueryBuilder,
   LessThan,
   QueryBuilder,
@@ -13,7 +14,14 @@ import {
 import { CreateMembershipDto } from './dto/create-membership.dto';
 import { UpdateMembershipDto } from './dto/update-membership.dto';
 import { Membership } from './entities/membership.entity';
-import { addMonths } from 'date-fns';
+import {
+  addMonths,
+  endOfMonth,
+  format,
+  parseISO,
+  startOfMonth,
+  subMonths,
+} from 'date-fns';
 import { MemberService } from 'src/member/member.service';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { SortDto } from 'src/common/dto/sort.dto';
@@ -30,7 +38,7 @@ export class MembershipService {
 
   async create(createMembershipData: CreateMembershipDto) {
     const membershipDuration = createMembershipData.duration;
-    // delete createMembershipData.duration;
+
     const membershipData = {
       endDate: addMonths(createMembershipData.startDate, membershipDuration),
       ...createMembershipData,
@@ -112,7 +120,67 @@ export class MembershipService {
     return this.membershipRepository.count();
   }
 
-  @Cron(CronExpression.EVERY_10_SECONDS, {
+  async monthlyNewMemberships() {
+    const rightNow = new Date();
+    const result = await this.membershipRepository.count({
+      where: {
+        startDate: Between(
+          startOfMonth(rightNow).toISOString(),
+          endOfMonth(rightNow).toISOString(),
+        ),
+      },
+    });
+    return result;
+  }
+  async monthlyRevenue() {
+    const rightNow = new Date();
+    const result = await this.membershipRepository.find({
+      where: {
+        startDate: Between(
+          startOfMonth(rightNow).toISOString(),
+          endOfMonth(rightNow).toISOString(),
+        ),
+      },
+    });
+
+    const revenue: number = result.reduce(
+      (total, membership) => total + membership.paymentAmount,
+      0,
+    );
+
+    return revenue;
+  }
+
+  async sixMonthRevenueChartData() {
+    const rightNow = new Date();
+    const result = await this.membershipRepository.find({
+      where: {
+        startDate: Between(
+          endOfMonth(subMonths(rightNow, 6)).toISOString(),
+          endOfMonth(rightNow).toISOString(),
+        ),
+        paymentCompleted: true,
+      },
+    });
+
+    var acc = {};
+    for (
+      let month = rightNow.getMonth();
+      month > rightNow.getMonth() - 6;
+      month--
+    ) {
+      acc[month] = 0;
+    }
+
+    const chartData = result.reduce((acc, curr) => {
+      // @ts-ignore:
+      const date = parseISO(curr.startDate);
+      acc[date.getMonth()] += curr.paymentAmount;
+      return acc;
+    }, acc);
+    return chartData;
+  }
+  @Cron(CronExpression.EVERY_DAY_AT_1AM, {
     name: 'checkForInactiveMemberships ',
   })
   async checkForInactiveMemberships() {

@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   HttpException,
   HttpStatus,
   Injectable,
@@ -12,6 +13,7 @@ import * as bcrypt from 'bcrypt';
 import {} from 'pg';
 import { CreateUserDto } from 'src/user/dto/create-user.dto';
 import { Role } from './role.enum';
+import { PasswordUpdateDto } from './dto/password-update.dto';
 @Injectable()
 export class AuthService {
   constructor(
@@ -38,15 +40,21 @@ export class AuthService {
   async login(user: LoginUserDto, adminLogin?: boolean) {
     const validatedUser = await this.validateUser(user.username, user.password);
 
-    if (adminLogin && validatedUser.role !== Role.ADMIN){
-        throw new UnauthorizedException('Invalid credentials.')
+    if (adminLogin && validatedUser.role !== Role.ADMIN) {
+      throw new UnauthorizedException('Invalid credentials.');
     }
     const payload = {
       username: validatedUser.username,
       sub: validatedUser.id,
       role: validatedUser.role,
     };
-    return { access_token: this.jwtService.sign(payload) };
+    return {
+      access_token: this.jwtService.sign({ type: 'access', ...payload }),
+      refresh_token: this.jwtService.sign(
+        { type: 'refresh', ...payload },
+        { expiresIn: '7d' },
+      ),
+    };
   }
 
   async register(registerData: CreateUserDto) {
@@ -59,4 +67,34 @@ export class AuthService {
     // createdUser.password = undefined;
     return createdUser;
   }
+
+  async refresh(username: string, type: string) {
+    if (type !== 'refresh') {
+      throw new UnauthorizedException('Invalid Token');
+    }
+    const user = await this.userService.findOneByUsername(username);
+    const payload = {
+      username: user.username,
+      sub: user.id,
+      role: user.role,
+    };
+
+    return {
+      access_token: this.jwtService.sign({ type: 'access', ...payload }),
+    };
+  }
+
+  async verifyToken(token: string) {
+    return await this.jwtService.verify(token);
+  }
+
+  async changePassword(username:string,passwordUpdateDto:PasswordUpdateDto){
+    const {newPassword, passwordVerify} = passwordUpdateDto;
+    if (newPassword !== passwordVerify){
+      throw new BadRequestException("Passwords don't match.")
+    }
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    return await this.userService.changePassword(username,hashedPassword);
+  }
+  
 }

@@ -41,6 +41,20 @@ export class UserController {
     return await this.userService.findAll(sortParams, pagination);
   }
 
+  @UseGuards(JWTAuthGuard, RolesGuard)
+  @UseInterceptors(ClassSerializerInterceptor)
+  @Get('/me')
+  async findForUser(@Req() req) {
+    return await this.userService.findForUser(req.user.username);
+  }
+
+  @UseGuards(JWTAuthGuard, RolesGuard)
+  @UseInterceptors(ClassSerializerInterceptor)
+  @Patch('/me')
+  async updateForUser(@Req() req, @Body() updateUserDto: UpdateUserDto) {
+    return await this.userService.updateForUser(req.user.id, updateUserDto);
+  }
+
   @Roles(Role.ADMIN)
   @UseGuards(JWTAuthGuard, RolesGuard)
   @UseInterceptors(ClassSerializerInterceptor)
@@ -48,7 +62,7 @@ export class UserController {
   findOne(@Param('id') id: string) {
     return this.userService.findOne(+id);
   }
-  
+
   @Roles(Role.ADMIN)
   @UseGuards(JWTAuthGuard, RolesGuard)
   @Patch(':id')
