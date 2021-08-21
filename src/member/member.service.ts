@@ -65,7 +65,7 @@ export class MemberService {
   async update(id: number, updateMemberDto: UpdateMemberDto) {
     await this.memberRepository.update(
       { id: id },
-      { workout_id: updateMemberDto.workout },
+      { workout_id: updateMemberDto.workout_id },
     );
     return await this.findOne(id);
   }

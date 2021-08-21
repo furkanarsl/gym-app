@@ -5,5 +5,5 @@ import { CreateMemberDto } from './create-member.dto';
 // export class UpdateMemberDto extends PartialType(CreateMemberDto) {}
 export class UpdateMemberDto {
   @IsNumber()
-  workout: number;
+  workout_id: number;
 }
