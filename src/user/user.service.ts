@@ -1,11 +1,10 @@
 import {
   BadRequestException,
-  HttpException,
   Injectable,
   NotFoundException,
+  OnModuleInit,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { type } from 'os';
 import { Role } from 'src/auth/role.enum';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
 import { SortDto } from 'src/common/dto/sort.dto';
@@ -14,9 +13,26 @@ import { Repository } from 'typeorm';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from './entities/user.entity';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
-export class UserService {
+export class UserService implements OnModuleInit {
+  async onModuleInit() {
+    const user = await this.userRepository.findOne({
+      where: { role: Role.ADMIN },
+    });
+    if (!user) {
+      const hashedPassword = await bcrypt.hash(process.env.ADMIN_PASS, 10);
+      const newAdmin = this.userRepository.create({
+        username: process.env.ADMIN_USER,
+        password: hashedPassword,
+        firstName: 'admin',
+        lastName: 'admin',
+        role: Role.ADMIN,
+      });
+      this.userRepository.save(newAdmin);
+    }
+  }
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
@@ -110,5 +126,6 @@ export class UserService {
     user.password = newPassword;
     return await this.userRepository.save(user);
   }
+
   async logMembership() {}
 }
